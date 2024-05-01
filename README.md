@@ -24,7 +24,9 @@
 
 `curl 'http://localhost:3000/moscow'` \
 **JSON ответ для Москвы:** \
-`[{"date":"2024-05-01","air_temperature":17.3},{"date":"2024-05-02","air_temperature":11},{"date":"2024-05-03","air_temperature":6.9}]%`   
+`[{"date":"2024-05-01","air_temperature":17.3},{"date":"2024-05-02","air_temperature":11},{"date":"2024-05-03","air_temperature":6.9}]%`  
+
+---------------
 
 `curl 'http://localhost:3000/51.5072&0.1276'` \
 **JSON ответ по данным координатам (Лондон):** \
