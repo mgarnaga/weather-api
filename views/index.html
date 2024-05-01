@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <header>
+        <title>Weather</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/styles.css">
+    </header>
+    <body>
+        <div id="container">
+            <h3>Weather</h3>
+            <div id="msk">узнать погоду в Москве</div>
+            <h4>Или узнать погоду по координатам:</h4>
+            <div>
+                <form id="locationForm" action="/" method="GET">
+                    <input type="text" id="lat" placeholder="Latitude">
+                    <input type="text" id="lon" placeholder="Longitude">
+                    <button type="submit">Показать</button>
+                </form>
+            </div>
+            <br>
+            <div id="result"></div>
+        </div>
+        <script>
+            document.getElementById('locationForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // отставить рефреш ))
+                
+                const latitude = document.getElementById('lat').value;
+                const longitude = document.getElementById('lon').value;
+                
+                // конструируем url из полученных данных
+                const url = `/${latitude}&${longitude}`;
+                
+                // фетчим наш api и рендерим по дням
+                fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('#result').innerHTML = '' + `<div>Погода для: ${latitude}, ${longitude}</div><br>`;
+                    data.forEach(obj => {
+                    let day = document.createElement('div');
+                    day.innerHTML = `
+                    <div>На дату: ${obj.date}<div>
+                    <div>Температура: ${obj.air_temperature}°</div>
+                        <br>`;
+                    document.querySelector('#result').appendChild(day);
+                    });
+                });
+            });
+            // если выбрана Москва 
+            document.querySelector('#msk').addEventListener('click', () => {
+                const url = '/moscow';
+                fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('#result').innerHTML = '' + '<div>Погода в Москве на ближайшие дни</div><br>';
+                    data.forEach(obj => {
+                    let day = document.createElement('div');
+                    day.innerHTML = `
+                    <div>Температура: ${obj.air_temperature}°</div>
+                    <div>На дату: ${obj.date}<div>
+                        <br>`;
+                    document.querySelector('#result').appendChild(day);
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
