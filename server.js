@@ -41,22 +41,50 @@ const fetchWeather = async (latitude, longitude) => {
         return { date, time: time.slice(0, 5) }; // слайсим только время
     };
     
-    // фильтрация объектов по времени 14:00 используя функцию выше
+    function linInterp(x, x0, y0, x1, y1) {
+        return y0 + ((x - x0) * (y1 - y0)) / (x1 - x0); // результат = темп6 + ((время11 - время6) * (темп12 - темп6)) / (время12 - время6)
+    }
+
     const filterByTime = (entries) => {
-        return entries.filter(entry => extractDateTime(entry.time).time === '11:00'); // для 11:00 по UTC у нас +3 (14:00)
+
+        const relevant = {}
+
+        // для каждой entry в полученной дате отделяем нужные для выборки даты и часы
+        entries.forEach(entry => {
+            const { date, time } = extractDateTime(entry.time);
+            const temperature = entry.data.instant.details.air_temperature;
+            relevant[date] = relevant[date] || {};
+
+            if (time === '11:00') {
+                relevant[date].temp11 = temperature;
+            } else if (time === '06:00') {
+                relevant[date].temp6 = temperature;
+            } else if (time === '12:00') {
+                relevant[date].temp12 = temperature;
+            }
+        });
+    
+        // итерируем даты и где нет температуры на 11:00 рассчитываем ее по линейной интерполяции исходя из промежутка 6:00-12:00 и добавляем в дату
+        Object.keys(relevant).forEach(date => {
+            const { temp6, temp12, temp11 } = relevant[date];
+            if (temp11 === undefined && temp6 !== undefined && temp12 !== undefined) {
+                const temperature11 = linInterp(11, 6, temp6, 12, temp12);
+                relevant[date].temp11 = Number(temperature11.toFixed(1));
+            }
+        });
+
+        console.log(relevant);
+        return relevant;
     };
     
-    // оставляем нужные объекты из полученного json
+    // фильтруем нужные объекты из полученного json, делаем из объектов массив с выборкой 11:00
     const relevantEntries = filterByTime(data.properties.timeseries);
-
-    // и генерируем свой API
-    const apiResponse = relevantEntries.map(entry => {
-        const { date } = extractDateTime(entry.time);
-        return { date, air_temperature: entry.data.instant.details.air_temperature };
-    });
+    const apiResponse = Object.entries(relevantEntries).map(([date, temps]) => ({ date, air_temperature: temps.temp11 }));
 
     // отправляем ответ
+    console.log(apiResponse);
     return apiResponse;
+    
     }  catch(error) {
     console.error('Error fetching from yr.no', error);
     res.status(500).json({error: 'Unable to fetch data from yr.no'});
