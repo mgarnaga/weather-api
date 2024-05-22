@@ -71,6 +71,9 @@ const fetchWeather = async (latitude, longitude) => {
                 const temperature11 = linInterp(11, 6, temp6, 12, temp12);
                 relevant[date].temp11 = Number(temperature11.toFixed(1));
             }
+            if ( temp6 === undefined || temp12 === undefined ) {
+                delete relevant[date];
+            }
         });
 
         console.log(relevant);
